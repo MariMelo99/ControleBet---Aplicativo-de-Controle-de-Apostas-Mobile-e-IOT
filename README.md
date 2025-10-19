@@ -1,28 +1,36 @@
-ControleBet + IoT/IOB – Aposta Consciente (XP)
+🎯 ControleBet + IoT/IOB – Aposta Consciente (XP)
 
-App mobile em React Native (Expo) integrado a um gateway IoT (FastAPI) que recebe eventos de análise facial (OpenCV) para incentivar apostas responsáveis.
-Quando o módulo facial detecta estresse acima do limiar, ele envia eventos à API – que o app consome – e o usuário recebe orientações (ex.: Pausa guiada (respiração 60s)).
+🧩 App mobile em React Native (Expo) integrado a um gateway IoT (FastAPI) que recebe eventos de análise facial (OpenCV) para incentivar apostas responsáveis.
+Quando o módulo facial detecta estresse acima do limiar, ele envia eventos à API – que o app consome – e o usuário recebe orientações como:
+💬 “Pausa guiada (respiração 60s)”.
 
-🔗 Módulos do projeto
+🔗 Módulos do Projeto
 Módulo	Pasta	Função	Tecnologias
 Mobile (ControleBet)	Sprint-MobileDevelop/	App do usuário; dashboards, metas, perfil de risco	React Native, Expo, TypeScript
 Gateway IoT (API)	Mobile_Challange-main/Mobile_Challange-main/	Recebe POST /events, expõe GET /events/last	FastAPI, Uvicorn
 Análise Facial	Mobile_Challange-main/Mobile_Challange-main/	Processa vídeo, calcula stress score e envia para API	Python, OpenCV, NumPy
 
-Importante: se você não tem webcam, use um arquivo de vídeo (ex.: face_400.mp4).
+📸 Sem webcam?
+Use um arquivo de vídeo (ex.: face_400.mp4).
 
 🧠 Como a integração funciona
 flowchart LR
-U[Usuário (vídeo/rosto)] --> F[OpenCV Python<br/>main_no_mediapipe.py]
-F -- POST JSON --> A[FastAPI (IoT Gateway)<br/>/events, /events/last]
-A -- GET JSON --> M[App Mobile (ControleBet)]
-M --> UI[UI: alertas, metas, status]
+U[🎥 Usuário (vídeo/rosto)] --> F[🧠 OpenCV Python<br/>main_no_mediapipe.py]
+F -- POST JSON --> A[🌐 FastAPI (IoT Gateway)<br/>/events & /events/last]
+A -- GET JSON --> M[📱 App Mobile (ControleBet)]
+M --> UI[🖥️ UI: alertas, metas, status]
 
 
-O Python (OpenCV) calcula um score ∈ [0..1] e classifica:
-leve (score < threshold), medio (score < 0.70), alto (≥ 0.70)
+Heurística de Score:
 
-Envia payloads para a API:
+score ∈ [0..1]
+leve:   score < threshold
+médio:  score < 0.70
+alto:   score ≥ 0.70
+
+
+Payload enviado à API:
+
 {
   "deviceId": "xp-edge-01",
   "userId": "admin",
@@ -33,50 +41,51 @@ Envia payloads para a API:
 }
 
 
-O app consulta /events/last periodicamente e exibe as recomendações.
+O app consome periodicamente /events/last e atualiza recomendações na UI.
+
 ✅ Pré-requisitos
-Node.js 18+ (para o app mobile)
-Python 3.10+ (recomendado 3.10 ou 3.11 para máxima compatibilidade)
-pip atualizado
-Expo CLI (npx expo)
-(Opcional) Android Studio/Xcode para emuladores
-
-🛠️ Instalação das dependências (uma vez)
-API + Facial (Python)
-No Windows/PowerShell:
-
+Componente	Versão recomendada
+Node.js	18+
+Python	3.10+ (ideal 3.10 ou 3.11)
+pip	Atualizado
+Expo CLI	npm install -g expo-cli
+Emulador (opcional)	Android Studio ou Xcode
+🛠️ Instalação das dependências (1x)
+🔹 API + Facial (Python)
 # Vá para a pasta da API/facial
 cd "C:\Users\Meu Computador\Downloads\Mobile_Challange-main\Mobile_Challange-main"
 
-# Crie e ative um venv
+# Crie e ative um ambiente virtual
 python -m venv .venv
 .\.venv\Scripts\activate
 
-# Instale libs
+# Instale dependências
 pip install --upgrade pip
 pip install fastapi uvicorn requests opencv-python numpy
 
-Mobile (React Native)
-
-No diretório do app:
+🔹 Mobile (React Native)
 cd "C:\caminho\para\Sprint-MobileDevelop"
 npm install --legacy-peer-deps
 
-# Dependências do Expo usadas no projeto
+# Dependências Expo usadas no projeto
 npx expo install react-native-screens react-native-safe-area-context
 
-▶️ Como rodar os 3 módulos (ordem recomendada)
-1) Inicie o Gateway IoT (API FastAPI)
+▶️ Execução – Ordem recomendada
+1️⃣ Inicie o Gateway IoT (API FastAPI)
 cd "C:\Users\Meu Computador\Downloads\Mobile_Challange-main\Mobile_Challange-main"
 .\.venv\Scripts\activate
 python -m uvicorn api:app --host 127.0.0.1 --port 8081 --reload
 
 
-Teste no navegador: http://127.0.0.1:8081/docs
-Você verá o Swagger com:
-POST /events (recebe eventos do facial)
-GET /events/last (último evento, para o Mobile consumir)
-Teste rápido via PowerShell:
+🌍 Teste no navegador: http://127.0.0.1:8081/docs
+
+Endpoints disponíveis:
+
+POST /events → recebe eventos do facial
+
+GET /events/last → último evento para o app consumir
+
+Teste rápido (PowerShell):
 
 $body = @{
   deviceId = "xp-edge-01"
@@ -90,43 +99,48 @@ $body = @{
 Invoke-RestMethod -Uri "http://127.0.0.1:8081/events" -Method Post -Body $body -ContentType "application/json"
 Invoke-RestMethod -Uri "http://127.0.0.1:8081/events/last" -Method Get
 
-2) Rode o processador facial (OpenCV)
-
-Com o mesmo venv ativado:
-
+2️⃣ Rode o Processador Facial (OpenCV)
 # ainda em Mobile_Challange-main\Mobile_Challange-main
-python .\main_no_mediapipe.py --video ".\face_400.mp4" --width 400 --api "http://127.0.0.1:8081" --user-id admin --device-id xp-edge-01 --push-interval 1.0 --threshold 0.35 --csv ".\scores_face.csv"
+python .\main_no_mediapipe.py --video ".\face_400.mp4" --width 400 `
+  --api "http://127.0.0.1:8081" --user-id admin --device-id xp-edge-01 `
+  --push-interval 1.0 --threshold 0.35 --csv ".\scores_face.csv"
 
 
-Você deve ver:
+🟢 Você deve ver:
+
 Janela do vídeo com retângulo no rosto;
-Painel lateral com score/nível/sugestão;
-No terminal da API, POST /events 200 aparecendo.
-Sem webcam? Sem problemas. O comando acima já usa face_400.mp4.
-Sem GUI? Gere um vídeo processado:
+
+Painel lateral com score / nível / sugestão;
+
+No terminal da API: [POST] 200 {"ok": true} aparecendo.
+
+💡 Sem webcam? Já usa face_400.mp4.
+💾 Sem GUI? Gere vídeo processado com:
+
 --out-video ".\output_face.mp4"
 
-3) Rode o app Mobile (ControleBet)
+3️⃣ Rode o App Mobile (ControleBet)
 cd "C:\caminho\para\Sprint-MobileDevelop"
 npx expo start
 
 
-Aponte o app para a API (duas opções):
-Opção A – Arquivo de configuração
-Crie .env na raiz do app:
+📱 Configuração da API (duas opções)
+
+Opção A – .env
+
+Crie um arquivo .env na raiz do app:
 
 EXPO_PUBLIC_API_BASE=http://127.0.0.1:8081
 
-E no código (ex. services/api.ts):
+
+E no código:
+
 export const API_BASE = process.env.EXPO_PUBLIC_API_BASE ?? "http://127.0.0.1:8081";
 
-
-Opção B – Valor fixo em código (rápido)
+Opção B – Fixo
 export const API_BASE = "http://127.0.0.1:8081";
 
-
-Consumo do evento no app (exemplo de polling a cada 5s):
-
+🔁 Polling do evento no app (exemplo)
 // services/events.ts
 export async function fetchLastEvent() {
   const res = await fetch(`${API_BASE}/events/last`);
@@ -134,30 +148,31 @@ export async function fetchLastEvent() {
   return res.json();
 }
 
-// Em Home.tsx (ou Context)
+// Exemplo em Home.tsx
 useEffect(() => {
-  let isMounted = true;
+  let active = true;
   const tick = async () => {
     try {
       const data = await fetchLastEvent();
-      if (isMounted && data?.level) setStressInfo(data); // exibe no UI
+      if (active && data?.event) setStressInfo(data.event);
     } catch {}
   };
   tick();
   const id = setInterval(tick, 5000);
-  return () => { isMounted = false; clearInterval(id); };
+  return () => { active = false; clearInterval(id); };
 }, []);
 
 
-Abra no Expo Go (QR), Android emulator (a) ou iOS simulator (i).
-Credenciais de teste (app):
+💡 Abra com Expo Go (QR), Android emulator (a) ou iOS simulator (i).
+
+🔑 Credenciais de teste:
 Usuário: admin
 Senha: 12345
 
-📡 Endpoints expostos pela API
+📡 Endpoints da API
+POST /events
 
-POST /events – recebe um evento do facial
-Body (JSON):
+Recebe eventos do facial:
 
 {
   "deviceId": "xp-edge-01",
@@ -168,9 +183,9 @@ Body (JSON):
   "ts": 1734636000
 }
 
+GET /events/last
 
-GET /events/last – retorna o último evento recebido
-Exemplo de resposta:
+Retorna o último evento:
 
 {
   "ok": true,
@@ -184,49 +199,48 @@ Exemplo de resposta:
   }
 }
 
-🧮 Como o score e o nível funcionam (facial)
+🧮 Como o score e nível funcionam
 
-Score ∈ [0..1] calculado por heurística leve:
+Heurística leve baseada em:
 
-jitter (variação quadro a quadro no ROI facial),
+🎞️ Jitter (variação quadro a quadro do ROI facial);
 
-mouth_open (brilho médio metade inferior − superior na região da boca).
+👄 Mouth_open (diferença de brilho entre metade superior e inferior da face).
 
-Níveis:
-leve → score < --threshold (padrão 0.35)
-medio → score < 0.70
-alto → score ≥ 0.70
+Classificação:
+Nível	Condição	Sugestão
+leve	score < 0.35	Continuar tranquilo
+médio	< 0.70	Pausa guiada (respiração 60s)
+alto	≥ 0.70	Pausa guiada (respiração 60s)
+🧪 Roteiro de Demo (5 min)
+Etapa	Tempo	Ação
+Arquitetura	30–45s	Mostre o diagrama Mermaid
+API	30s	Rode o Uvicorn e abra /docs
+Facial	1–2min	Mostre o vídeo com score + POST 200
+Mobile	1–2min	Abra o app e mostre /events/last
+Fechamento	30s	Enfatize o uso responsável + próximos passos
 
-Sugestão:
-leve → “Continuar tranquilo”
-medio/alto → “Pausa guiada (respiracao 60s)”
-
-🧪 Roteiro de demo (até 5 min)
-Arquitetura (30–45s): mostre o diagrama (Flowchart).
-API (30s): rode o Uvicorn e abra http://127.0.0.1:8081/docs.
-Facial (1–2min): rode main_no_mediapipe.py, mostre o vídeo e os POST no terminal da API.
-Mobile (1–2min): abra o app (Expo), mostre que a tela consome /events/last e atualiza sugestões.
-Fechamento (30s): reforço de uso responsável + próximos passos (notificações, dashboard, etc.).
-
-🧯 Troubleshooting rápido
-“Não abre vídeo”: use check_video.py e teste com caminho absoluto; se necessário recodifique para H.264.
-ModuleNotFoundError: cv2: instale opencv-python no mesmo venv ativo.
-CORS no mobile: se testar em dispositivo físico, troque 127.0.0.1 pelo IP da máquina na mesma rede (ex.: http://192.168.15.123:8081) e use esse IP no .env do app.
-Porta ocupada: mude --port no Uvicorn (ex.: 8082) e atualize API_BASE no app.
-Sem webcam: passe --video "face_400.mp4" (já previsto).
+🧯 Troubleshootin
+Problema	Solução
+“Não abre vídeo”	Use check_video.py e reencode para H.264
+ModuleNotFoundError: cv2	Instale opencv-python no venv ativo
+CORS no mobile	Use o IP da máquina (ex.: http://192.168.15.123:8081)
+Porta ocupada	Troque --port e ajuste API_BASE
+Sem webcam	Use --video "face_400.mp4"
 
 📦 Tecnologias
-
-Mobile: React Native, Expo, TypeScript, AsyncStorage, react-navigation, chart-kit, SVG
-API: FastAPI, Uvicorn
-Facial: Python, OpenCV, NumPy, Requests
+Mobile: React Native · Expo · TypeScript · AsyncStorage · React Navigation · ChartKit · SVG
+API: FastAPI · Uvicorn
+Facial: Python · OpenCV · NumPy · Requests
 
 👥 Equipe
-
-Irana Pereira – RM98593
-Lucas Vinicius – RM98480
-Mariana Melo – RM98121
-Mateus Iago – RM550270
+Nome	RM
+Irana Pereira	RM98593
+Lucas Vinicius	RM98480
+Mariana Melo	RM98121
+Mateus Iago	RM550270
 
 📄 Licença
-Projeto acadêmico – FIAP (2025). Uso educacional.
+
+📚 Projeto acadêmico desenvolvido para FIAP (2025).
+Uso educacional e não comercial.
